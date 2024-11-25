@@ -114,14 +114,61 @@ public class Robot extends Component {
 		return targetComponentsIterator.hasNext() ? targetComponentsIterator.next() : null;
 	}
 	
-	private int moveToNextPathPosition() {
+	private Position getNextPosition() {
+		return this.nextPosition;
+	}
+	
+	// TODO - mudar nome desse método!
+	private PositionedShape getPositionShape(Position position) { 
+		return new RectangularShape(position.getxCoordinate(), position.getyCoordinate(), 2, 2);
+	}
+	
+	@Override 
+	public boolean isLivelyLocked() {
+		final Position nextPosition = getNextPosition();
+		if (nextPosition == null) {
+			return false; 
+		}
+		final Robot otherRobot = (Robot) getFactory().getMobileComponentAt(getPositionShape(nextPosition), this);
+		return otherRobot != null && getPosition().equals(otherRobot.getNextPosition()); 
+	} 
+	
+	private int moveToNextPathPosition() { 
 		final Motion motion = computeMotion();
+		int displacement = motion == null ? 0 : this.getFactory().moveComponent(motion, this);
 		
-		final int displacement = motion == null ? 0 : motion.moveToTarget();
-			
-		notifyObservers();
+		 if (displacement != 0) {
+			 notifyObservers(); 
+		 } 
+		 else if (isLivelyLocked()) { 
+			 final Position freeNeighbouringPosition = findFreeNeighbouringPosition();
+			 if (freeNeighbouringPosition != null) {
+				 nextPosition = freeNeighbouringPosition;
+				 System.out.println(nextPosition);
+				 displacement = moveToNextPathPosition();
+				 computePathToCurrentTargetComponent(); 
+			 } 
+		 } 
+		 return displacement;
+	} 
+	
+	private Position findFreeNeighbouringPosition() {
+		int[] currentPosition = {getPositionedShape().getPosition().getxCoordinate(), getPositionedShape().getPosition().getyCoordinate()};
+		int[][] alternatives = {{0, 5}, {0, -5}, {5, 0}, {-5, 0}};
 		
-		return displacement;
+		for(int i = 0; i<=4; i+=1) {
+	        int newX = currentPosition[0] + alternatives[i][0];
+	        int newY = currentPosition[1] + alternatives[i][1];
+	        
+	        PositionedShape shape = new RectangularShape(newX, newY, 2, 2);
+
+	        if (!getFactory().hasMobileComponentAt(shape, this) && 
+	            !getFactory().hasObstacleAt(shape)) {
+	            return shape.getPosition();
+	        }
+		}
+		return null;
+	
 	}
 	
 	private void computePathToCurrentTargetComponent() {

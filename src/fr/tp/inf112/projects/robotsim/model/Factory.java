@@ -9,6 +9,7 @@ import fr.tp.inf112.projects.canvas.controller.Observer;
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.Figure;
 import fr.tp.inf112.projects.canvas.model.Style;
+import fr.tp.inf112.projects.robotsim.model.motion.Motion;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
@@ -17,7 +18,6 @@ public class Factory extends Component implements Canvas, Observable {
 	private static final long serialVersionUID = 5156526483612458192L;
 	
 	private static final ComponentStyle DEFAULT = new ComponentStyle(5.0f);
-
 
     private final List<Component> components;
 
@@ -103,16 +103,7 @@ public class Factory extends Component implements Canvas, Observable {
 			this.simulationStarted = true;
 			notifyObservers();
 
-			while (isSimulationStarted()) {
-				behave();
-				
-				try {
-					Thread.sleep(100);
-				}
-				catch (final InterruptedException ex) {
-					System.err.println("Simulation was abruptely interrupted");
-				}
-			}
+			behave();
 		}
 	}
 
@@ -129,7 +120,8 @@ public class Factory extends Component implements Canvas, Observable {
 		boolean behaved = true;
 		
 		for (final Component component : getComponents()) {
-			behaved = component.behave() || behaved;
+			Thread componentThread = new Thread(component);
+			componentThread.start();
 		}
 		
 		return behaved;
@@ -159,5 +151,27 @@ public class Factory extends Component implements Canvas, Observable {
 		}
 		
 		return false;
+	}
+	
+	public Component getMobileComponentAt(final PositionedShape shape, final Component movingComponent) {
+		for (final Component component : getComponents()) {
+			if (component != movingComponent && component.isMobile() && component.overlays(shape)) {
+				return component;
+			}
+		}
+		return null;
+	}
+	
+	protected synchronized int moveComponent(final Motion motion, final Component componentToMove) {
+		int xCoordinate = motion.getTargetPosition().getxCoordinate();
+		int yCoordinate = motion.getTargetPosition().getyCoordinate();
+		
+		final PositionedShape destiny = new RectangularShape(xCoordinate, yCoordinate, 2, 2);
+		
+		if (this.hasMobileComponentAt(destiny, componentToMove) || this.hasObstacleAt(destiny)) {
+			return 0;
+		}
+	
+		return motion.moveToTarget();
 	}
 }
