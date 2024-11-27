@@ -144,7 +144,6 @@ public class Robot extends Component {
 			 final Position freeNeighbouringPosition = findFreeNeighbouringPosition();
 			 if (freeNeighbouringPosition != null) {
 				 nextPosition = freeNeighbouringPosition;
-				 System.out.println(nextPosition);
 				 displacement = moveToNextPathPosition();
 				 computePathToCurrentTargetComponent(); 
 			 } 
