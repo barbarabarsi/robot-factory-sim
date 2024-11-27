@@ -34,7 +34,7 @@ public abstract class Component implements Figure, Serializable, Runnable {
 	
 	@Override
 	public void run() {
-		while(this.factory.isSimulationStarted()) {
+		while(this.isSimulationStarted()) {
 			behave();
 			try {
 				Thread.sleep(50);
