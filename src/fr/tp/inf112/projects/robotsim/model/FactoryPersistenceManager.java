@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.CanvasChooser;
 import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
