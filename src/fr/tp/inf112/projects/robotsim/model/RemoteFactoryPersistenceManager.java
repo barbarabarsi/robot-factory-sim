@@ -22,8 +22,6 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 	         ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream()))
 	    {
-        	System.out.println("i ->" + inputStream);
-        	System.out.println("o ->" + outputStream);
 	    	outputStream.writeObject(canvasId); 
 	        return (Canvas) inputStream.readObject();
 	    } 
@@ -38,7 +36,6 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);
 	         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream()))
 	    {
-        	System.out.println("o ->" + outputStream);
 	    	outputStream.writeObject(canvasModel); 
 	    }
 	    catch (IOException ex) 

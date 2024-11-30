@@ -20,7 +20,7 @@ import fr.tp.inf112.projects.canvas.view.FileCanvasChooser;
 
 public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	
-    private final FileNameExtensionFilter fileNameFilter;
+
 	
     public RemoteFileCanvasChooser(final String fileExtension, final String documentTypeLabel) {
 		this(null, fileExtension, documentTypeLabel);
@@ -31,8 +31,6 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 		if (fileExtension == null) {
 			throw new IllegalArgumentException("File extension cannot be null.");
 		}
-
-		fileNameFilter = new FileNameExtensionFilter(documentTypeLabel + " files " + "(*." + fileExtension + ")", fileExtension);
 	}
 	
 	@Override
@@ -60,8 +58,17 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	                    files[0]
 	            );
 	            
-	            System.out.println(selectedFile);
-	            return selectedFile;
+	    	    if (selectedFile != null && !selectedFile.trim().isEmpty()) {
+	    		    File file = new File("./" + selectedFile);
+	    		    if ((open && file.exists()) || !open) {
+	    		    	System.out.println(file.getPath());
+	    		    	return file.getPath();
+	    		    }
+	    		    
+	    	    }
+	            
+	            
+	            return null;
 	        } 
         	else {
     	        String name = JOptionPane.showInputDialog("Enter file name to save:", ".factory");

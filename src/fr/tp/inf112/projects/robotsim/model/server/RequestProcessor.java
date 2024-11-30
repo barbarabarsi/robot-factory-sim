@@ -50,10 +50,13 @@ public class RequestProcessor implements Runnable {
                }
             }
             else if (readObject instanceof String) {
-                persistenceManager.read((String) readObject);
+            	ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
+                Canvas canvas =  persistenceManager.read((String) readObject);
+                objectOutputStream.writeObject(canvas); 
+                objectOutputStream.flush();
                 
             } else if (readObject instanceof Factory) {
-                persistenceManager.persist((Canvas) readObject);
+            	persistenceManager.persist((Canvas) readObject);
             }
 			 
 	    } catch (SocketException e) {
