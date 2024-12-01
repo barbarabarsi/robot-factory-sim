@@ -1,5 +1,7 @@
 package fr.tp.inf112.projects.robotsim.model;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,12 +20,16 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	
 	@Override
 	public Canvas read(String canvasId) throws IOException {
-	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);	    		
-	         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-	         ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream()))
+	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 8080))
 	    {
-	    	outputStream.writeObject(canvasId); 
-	        return (Canvas) inputStream.readObject();
+	    	BufferedOutputStream buffOutputStream = new BufferedOutputStream(socket.getOutputStream());
+	        ObjectOutputStream objectOutputStream = new ObjectOutputStream(buffOutputStream);
+	        objectOutputStream.writeObject(canvasId); 
+	    	objectOutputStream.flush();
+	    	
+	    	BufferedInputStream buffInputStream = new BufferedInputStream(socket.getInputStream());
+	        ObjectInputStream objectinputStream = new ObjectInputStream(buffInputStream);
+	        return (Canvas) objectinputStream.readObject();
 	    } 
 	    catch (ClassNotFoundException | IOException ex) 
 	    {
@@ -34,9 +40,10 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	@Override
 	public void persist(Canvas canvasModel) throws IOException {
 	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);
-	         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream()))
+    		 BufferedOutputStream buffOutputStream = new BufferedOutputStream(socket.getOutputStream());
+	         ObjectOutputStream objectOutputStream = new ObjectOutputStream(buffOutputStream))
 	    {
-	    	outputStream.writeObject(canvasModel); 
+	    	objectOutputStream.writeObject(canvasModel); 
 	    }
 	    catch (IOException ex) 
 	    {

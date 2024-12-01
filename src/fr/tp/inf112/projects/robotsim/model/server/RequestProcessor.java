@@ -16,6 +16,7 @@ import java.net.SocketException;
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
+import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 // import java.util.logging.Logger;
 
 public class RequestProcessor implements Runnable {
@@ -28,29 +29,27 @@ public class RequestProcessor implements Runnable {
     @Override
     public void run() {
         try {
-			InputStream buffInputStream = new BufferedInputStream(client.getInputStream());
-			ObjectInputStream objectInputStream = new ObjectInputStream(buffInputStream);
-
+        	BufferedInputStream buffInputStream = new BufferedInputStream(client.getInputStream());
+            ObjectInputStream objectInputStream = new ObjectInputStream(buffInputStream);
             Object readObject = objectInputStream.readObject();
-            FactoryPersistenceManager persistenceManager = new FactoryPersistenceManager(null);
             
-            System.out.println("->"+ readObject);
+            BufferedOutputStream buffOutputStream = new BufferedOutputStream(client.getOutputStream());
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(buffOutputStream);
+           
+            FactoryPersistenceManager persistenceManager = new FactoryPersistenceManager(new RemoteFileCanvasChooser("factory", "Puck Factory"));
             
             if (readObject instanceof String && "BROWSER".equals(readObject)) {
-            	ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
-            	
             	File currentDirectory = new File(".");
-            	
                 String[] fileNames = currentDirectory.list((dir, name) -> name.endsWith(".factory"));
                 
                if (fileNames != null) 
-            	   objectOutputStream.writeObject(fileNames);
+            		objectOutputStream.writeObject(fileNames);               	
                else {
-            	   objectOutputStream.writeObject(new String[0]);
+            		objectOutputStream.writeObject(new String[0]);
                }
+               objectOutputStream.flush();
             }
             else if (readObject instanceof String) {
-            	ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
                 Canvas canvas =  persistenceManager.read((String) readObject);
                 objectOutputStream.writeObject(canvas); 
                 objectOutputStream.flush();
@@ -60,7 +59,7 @@ public class RequestProcessor implements Runnable {
             }
 			 
 	    } catch (SocketException e) {
-	        System.out.println("Conexão encerrada abruptamente pelo cliente.");
+	        System.out.println("Connection closes by the client.");
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    } finally {

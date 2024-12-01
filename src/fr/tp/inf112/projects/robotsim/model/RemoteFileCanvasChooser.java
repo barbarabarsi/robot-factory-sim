@@ -16,10 +16,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.view.FileCanvasChooser;
 
 public class RemoteFileCanvasChooser extends FileCanvasChooser{
-	
 
 	
     public RemoteFileCanvasChooser(final String fileExtension, final String documentTypeLabel) {
@@ -38,13 +38,13 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	    
         try{   	
         	if (open) {
-        		final Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);
-           	 	final ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+        		Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);
+        		
+           	 	ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
            	 		
-	        	
 	        	outputStream.writeObject("BROWSER");
 
-	        	final ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+	        	ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 	            String[] files = (String[]) inputStream.readObject();
 	           
 	            
@@ -58,15 +58,13 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	                    files[0]
 	            );
 	            
-	    	    if (selectedFile != null && !selectedFile.trim().isEmpty()) {
-	    		    File file = new File("./" + selectedFile);
-	    		    if ((open && file.exists()) || !open) {
-	    		    	System.out.println(file.getPath());
-	    		    	return file.getPath();
-	    		    }
-	    		    
-	    	    }
 	            
+	            if (selectedFile != null && !selectedFile.trim().isEmpty()) {
+	            	File file = new File("./" + selectedFile);
+	     		    if (file.exists()) {
+	     		    	return file.getPath();
+	     		    }
+	            }
 	            
 	            return null;
 	        } 
@@ -79,7 +77,6 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	    } 
 	    catch (ClassNotFoundException | IOException e) 
         {
-        	System.out.println("ERROOOOOO");
             e.printStackTrace();
 		}
 	    

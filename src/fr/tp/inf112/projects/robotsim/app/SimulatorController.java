@@ -51,6 +51,7 @@ public class SimulatorController implements CanvasViewerController {
 	 */
 	@Override
 	public void setCanvas(final Canvas canvasModel) {
+		System.out.println("SC ->" + canvasModel);
 		factoryModel = (Factory) canvasModel;
 	}
 	
