@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.CanvasChooser;
 import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
@@ -32,7 +33,9 @@ public class FactoryPersistenceManager extends AbstractCanvasPersistenceManager 
 			final InputStream bufInputStream = new BufferedInputStream(fileInputStream);
 			final ObjectInputStream objectInputStrteam = new ObjectInputStream(bufInputStream);
 		) {
-			return (Canvas) objectInputStrteam.readObject();
+			Canvas tst =  (Canvas) objectInputStrteam.readObject();
+			System.out.println("FPM READ -: " + tst);
+			return tst;
 		}
 		catch (ClassNotFoundException | IOException ex) {
 			throw new IOException(ex);
