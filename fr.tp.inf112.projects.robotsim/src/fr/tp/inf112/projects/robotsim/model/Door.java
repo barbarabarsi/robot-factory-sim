@@ -1,7 +1,10 @@
 package fr.tp.inf112.projects.robotsim.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.canvas.model.impl.RGBColor;
+import fr.tp.inf112.projects.robotsim.model.Room.WALL;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
@@ -75,6 +78,13 @@ public class Door extends Component {
 	
 	private static final Style OPEN_STYLE = new ComponentStyle(RGBColor.WHITE, null, 0, null);
 	
+	public Door() {
+		super();
+		this.room = null;
+		this.room.addDoor(this);
+		this.open = false;
+	}
+	
 	public Door(final Room room,
 				final Room.WALL wall,
 				final int offset,
@@ -91,10 +101,12 @@ public class Door extends Component {
 	}
 	
 	@Override
+	@JsonInclude
 	public Style getStyle() {
 		return isOpen() ? OPEN_STYLE : ComponentStyle.DEFAULT_BLACK;
 	}
 
+	@JsonInclude
 	private boolean isOpen() {
 		return open;
 	}
@@ -129,6 +141,7 @@ public class Door extends Component {
 	}
 	
 	@Override
+	@JsonInclude
 	public boolean canBeOverlayed(final PositionedShape shape) {
 		return isOpen();
 	}

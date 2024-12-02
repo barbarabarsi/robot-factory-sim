@@ -1,6 +1,8 @@
 package fr.tp.inf112.projects.robotsim.app;
 
 import java.awt.Component;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import javax.swing.SwingUtilities;
@@ -33,7 +35,27 @@ public class SimulatorApplication {
 		System.out.println("Starting the robot simulator...");
 		
 		System.out.println("With parameters " + Arrays.toString(args) + ".");
+	
+		SwingUtilities.invokeLater(new Runnable() {
+			  
+			@Override
+	        public void run() {
+				try {
+					final RemoteFileCanvasChooser canvasChooser = new RemoteFileCanvasChooser("factory", "Puck Factory");
+					final RemoteFactoryPersistenceManager remotePersistenceManager = new RemoteFactoryPersistenceManager(canvasChooser);
+					final Factory factory = defaultFactory();
+					final RemoteSimulatorController remoteController = new RemoteSimulatorController(factory, remotePersistenceManager);
+					final Component factoryViewer = new CanvasViewer(remoteController);
+					canvasChooser.setViewer(factoryViewer);
+				} catch (URISyntaxException | IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
 		
+			}
+		});
+	}
+	
+	public static Factory defaultFactory() {
 		final Factory factory = new Factory(200, 200, "Simple Test Puck Factory");
 		final Room room1 = new Room(factory, new RectangularShape(20, 20, 75, 75), "Production Room 1");
 		new Door(room1, Room.WALL.BOTTOM, 10, 20, true, "Entrance");
@@ -78,15 +100,6 @@ public class SimulatorApplication {
 		robot2.addTargetComponent(new Conveyor(factory, conveyorShape, "Conveyor 1"));
 		robot2.addTargetComponent(chargingStation);
 		
-		SwingUtilities.invokeLater(new Runnable() {
-			  
-			@Override
-	        public void run() {
-				final RemoteFileCanvasChooser canvasChooser = new RemoteFileCanvasChooser("factory", "Puck Factory");
-				final Component factoryViewer = new CanvasViewer(new SimulatorController(factory, new RemoteFactoryPersistenceManager(canvasChooser)));
-				canvasChooser.setViewer(factoryViewer);
-				//new CanvasViewer(factory);
-			}
-		});
+		return factory;
 	}
 }

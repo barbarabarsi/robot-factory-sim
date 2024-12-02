@@ -4,27 +4,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 import org.springframework.web.bind.annotation.*;
 
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.RemoteFactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 
-@SpringBootApplication
 @RestController
-public class RemoteSimulationController {
+public class MicroServiceController {
 
-	private static final Logger LOGGER = Logger.getLogger(RemoteSimulationController.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(MicroServiceController.class.getName());
 
-    private List<Factory> factoryModelList;
-    private RemoteFactoryPersistenceManager persistenceManager;
-    
-    public RemoteSimulationController() {
-    	this.factoryModelList = new ArrayList<Factory>();
-    	persistenceManager = new RemoteFactoryPersistenceManager(new RemoteFileCanvasChooser("factory", "Puck Factory"));
-    }
-
+    private List<Factory> factoryModelList = new ArrayList<Factory>();
+    private RemoteFactoryPersistenceManager persistenceManager = new RemoteFactoryPersistenceManager(new RemoteFileCanvasChooser("factory", "Puck Factory"));;
+   
 
     @GetMapping("/start/{factoryId}")
     public boolean startSimulation(@PathVariable String factoryId) {
@@ -33,7 +27,14 @@ public class RemoteSimulationController {
 		try {
 			Factory factory = (Factory) persistenceManager.read(factoryId);
 			factoryModelList.add(factory);
-			factory.startSimulation();
+
+			try
+			{	
+				new Thread(() -> factory.startSimulation()).start();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			LOGGER.info("Simulation started successfully for factory ID:" + factoryId);
             return true;
@@ -47,12 +48,11 @@ public class RemoteSimulationController {
     public Factory getFactory(@PathVariable String factoryId) {
     	LOGGER.info("Request received to retrieve simulation for factory ID: " + factoryId);
     	Factory factory = findFactory(factoryId);
-    	
         if (factory != null) {
         	LOGGER.info("Factory model retrieved successfully for factory ID: " + factoryId);
             return factory;
         } else {
-        	LOGGER.fine("No simulation found for factory ID: {}" + factoryId);
+        	LOGGER.info("No simulation found for factory ID: " + factoryId);
             return null;
         }
     }

@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import fr.tp.inf112.projects.canvas.model.Canvas;
+import fr.tp.inf112.projects.robotsim.app.SimulatorApplication;
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
@@ -38,23 +39,32 @@ public class RequestProcessor implements Runnable {
            
             FactoryPersistenceManager persistenceManager = new FactoryPersistenceManager(new RemoteFileCanvasChooser("factory", "Puck Factory"));
             
-            if (readObject instanceof String && "BROWSER".equals(readObject)) {
-            	File currentDirectory = new File(".");
-                String[] fileNames = currentDirectory.list((dir, name) -> name.endsWith(".factory"));
+            if (readObject instanceof String && "BROWSER".equals(readObject)) 
+            {
+	        	File currentDirectory = new File(".");
+	        	String[] fileNames = currentDirectory.list((dir, name) -> name.endsWith(".factory"));
                 
-               if (fileNames != null) 
-            		objectOutputStream.writeObject(fileNames);               	
-               else {
-            		objectOutputStream.writeObject(new String[0]);
-               }
-               objectOutputStream.flush();
+	        	if (fileNames != null) 
+		    		objectOutputStream.writeObject(fileNames);               	
+				else {
+					objectOutputStream.writeObject(new String[0]);
+				}
+				objectOutputStream.flush();
             }
-            else if (readObject instanceof String) {
-                Canvas canvas =  persistenceManager.read((String) readObject);
-                objectOutputStream.writeObject(canvas); 
+            else if (readObject instanceof String) 
+            {
+                Canvas factory =  persistenceManager.read((String) readObject);
+                if (factory == null) {
+					factory = SimulatorApplication.defaultFactory();
+					factory.setId((String) readObject);
+					persistenceManager.persist((Canvas) factory);
+				}
+                objectOutputStream.writeObject(factory); 
                 objectOutputStream.flush();
                 
-            } else if (readObject instanceof Factory) {
+            } 
+            else if (readObject instanceof Factory) 
+            {
             	persistenceManager.persist((Canvas) readObject);
             }
 			 

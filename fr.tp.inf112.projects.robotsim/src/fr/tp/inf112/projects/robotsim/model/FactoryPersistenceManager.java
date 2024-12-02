@@ -18,6 +18,10 @@ import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
 
 public class FactoryPersistenceManager extends AbstractCanvasPersistenceManager {
 	
+	public FactoryPersistenceManager() {
+		this(null);
+	}
+	
 	public FactoryPersistenceManager(final CanvasChooser canvasChooser) {
 		super(canvasChooser);
 	}
@@ -28,14 +32,17 @@ public class FactoryPersistenceManager extends AbstractCanvasPersistenceManager 
 	@Override
 	public Canvas read(final String canvasId)
 	throws IOException {
+		File file = new File(canvasId);
+	    if (!file.exists()) {
+	        return null;
+	    }
 		try (
 			final InputStream fileInputStream = new FileInputStream(canvasId);
 			final InputStream bufInputStream = new BufferedInputStream(fileInputStream);
 			final ObjectInputStream objectInputStrteam = new ObjectInputStream(bufInputStream);
 		) {
-			Canvas tst =  (Canvas) objectInputStrteam.readObject();
-			System.out.println("FPM READ -: " + tst);
-			return tst;
+			return (Canvas) objectInputStrteam.readObject();
+			
 		}
 		catch (ClassNotFoundException | IOException ex) {
 			throw new IOException(ex);

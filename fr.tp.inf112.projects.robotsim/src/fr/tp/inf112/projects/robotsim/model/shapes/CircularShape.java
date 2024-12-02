@@ -8,6 +8,12 @@ public class CircularShape extends PositionedShape implements OvalShape {
 
 	private final int radius;
 	
+	public CircularShape() {
+		super(-1, -1);
+
+		this.radius = -1;
+	}
+	
 	public CircularShape( 	final int xCoordinate,
 							final int yCoordinate,
 							final int radius ) {

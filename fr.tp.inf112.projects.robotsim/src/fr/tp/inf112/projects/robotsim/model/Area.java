@@ -1,5 +1,7 @@
 package fr.tp.inf112.projects.robotsim.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
@@ -11,6 +13,10 @@ public class Area extends Component {
 	private static final Style STYLE = new ComponentStyle( ComponentStyle.DEFAULT_DASH_PATTERN );
 	
 	private Machine machine;
+	
+	public Area() {
+		this(null, null, null);
+	}
 	
 	public Area(final Room room,
 				final RectangularShape shape,
@@ -36,6 +42,7 @@ public class Area extends Component {
 		return super.toString() + " machine=" + machine + "]";
 	}
 	
+	@JsonInclude
 	@Override
 	public Style getStyle() {
 		return STYLE;

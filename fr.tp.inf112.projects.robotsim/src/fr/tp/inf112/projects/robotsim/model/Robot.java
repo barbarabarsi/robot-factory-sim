@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.canvas.model.impl.RGBColor;
 import fr.tp.inf112.projects.robotsim.model.motion.Motion;
@@ -26,17 +29,24 @@ public class Robot extends Component {
 	
 	private List<Component> targetComponents;
 	
+	@JsonIgnore 
 	private transient Iterator<Component> targetComponentsIterator;
 	
 	private Component currTargetComponent;
 	
+	@JsonIgnore 
 	private transient Iterator<Position> currentPathPositionsIter;
 	
+	@JsonIgnore 
 	private transient boolean blocked;
 	
 	private Position nextPosition;
 	
 	private FactoryPathFinder pathFinder;
+	
+	public Robot() {
+		this(null, null, null, null, null);
+	}
 
 	public Robot(final Factory factory,
 				 final FactoryPathFinder pathFinder,
@@ -62,6 +72,7 @@ public class Robot extends Component {
 		return super.toString() + " battery=" + battery + "]";
 	}
 
+	@JsonInclude
 	protected int getSpeed() {
 		return speed;
 	}
@@ -87,6 +98,7 @@ public class Robot extends Component {
 	}
 	
 	@Override
+	@JsonInclude
 	public boolean isMobile() {
 		return true;
 	}
@@ -118,7 +130,6 @@ public class Robot extends Component {
 		return this.nextPosition;
 	}
 	
-	// TODO - mudar nome desse método!
 	private PositionedShape getPositionShape(Position position) { 
 		return new RectangularShape(position.getxCoordinate(), position.getyCoordinate(), 2, 2);
 	}
@@ -205,11 +216,13 @@ public class Robot extends Component {
 	}
 	
 	@Override
+	@JsonInclude
 	public boolean canBeOverlayed(final PositionedShape shape) {
 		return true;
 	}
 	
 	@Override
+	@JsonInclude
 	public Style getStyle() {
 		return blocked ? BLOCKED_STYLE : STYLE;
 	}

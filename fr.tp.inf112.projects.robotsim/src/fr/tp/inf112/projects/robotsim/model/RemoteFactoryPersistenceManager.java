@@ -11,8 +11,13 @@ import java.net.Socket;
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.CanvasChooser;
 import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
+import fr.tp.inf112.projects.robotsim.app.SimulatorApplication;
 
-public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceManager{
+public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceManager {
+	
+	public RemoteFactoryPersistenceManager() {
+		this(null);
+	}
 
 	public RemoteFactoryPersistenceManager(final CanvasChooser canvasChooser) {
 		super(canvasChooser);
@@ -20,7 +25,7 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	
 	@Override
 	public Canvas read(String canvasId) throws IOException {
-	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 8080))
+	    try (Socket socket = new Socket(InetAddress.getByName("localhost"), 80))
 	    {
 	    	BufferedOutputStream buffOutputStream = new BufferedOutputStream(socket.getOutputStream());
 	        ObjectOutputStream objectOutputStream = new ObjectOutputStream(buffOutputStream);
@@ -30,6 +35,7 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	    	BufferedInputStream buffInputStream = new BufferedInputStream(socket.getInputStream());
 	        ObjectInputStream objectinputStream = new ObjectInputStream(buffInputStream);
 	        return (Canvas) objectinputStream.readObject();
+
 	    } 
 	    catch (ClassNotFoundException | IOException ex) 
 	    {

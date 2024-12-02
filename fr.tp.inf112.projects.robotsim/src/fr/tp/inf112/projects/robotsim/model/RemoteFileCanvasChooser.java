@@ -21,7 +21,10 @@ import fr.tp.inf112.projects.canvas.view.FileCanvasChooser;
 
 public class RemoteFileCanvasChooser extends FileCanvasChooser{
 
-	
+    public RemoteFileCanvasChooser() {
+		this(null, null, null);
+	}
+    
     public RemoteFileCanvasChooser(final String fileExtension, final String documentTypeLabel) {
 		this(null, fileExtension, documentTypeLabel);
 	}
@@ -38,7 +41,7 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	    
         try{   	
         	if (open) {
-        		Socket socket = new Socket(InetAddress.getByName("localhost"), 8080);
+        		Socket socket = new Socket(InetAddress.getByName("localhost"), 80);
         		
            	 	ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
            	 		
@@ -47,7 +50,10 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser{
 	        	ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 	            String[] files = (String[]) inputStream.readObject();
 	           
-	            
+	            if (files.length == 0) {
+	            	JOptionPane.showMessageDialog(null, "There ate no files to load");
+	            	return null;
+	            }
 	            String selectedFile = (String) JOptionPane.showInputDialog(
 	                    null,
 	                    "Select a file to open:",
