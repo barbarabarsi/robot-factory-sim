@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.UUID;
 
 import javax.swing.SwingUtilities;
 
@@ -99,6 +100,8 @@ public class SimulatorApplication {
 		robot2.addTargetComponent(machine2);
 		robot2.addTargetComponent(new Conveyor(factory, conveyorShape, "Conveyor 1"));
 		robot2.addTargetComponent(chargingStation);
+		
+		factory.setId(UUID.randomUUID().toString());
 		
 		return factory;
 	}

@@ -1,5 +1,6 @@
 package fr.tp.slr201.projects.robotsim.service.simulation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +45,17 @@ public class MicroServiceController {
 		}
     }
 
-    @GetMapping("/get/{factoryId}")
     public Factory getFactory(@PathVariable String factoryId) {
+    	
     	LOGGER.info("Request received to retrieve simulation for factory ID: " + factoryId);
     	Factory factory = findFactory(factoryId);
-        if (factory != null) {
+        
+    	if (factory != null) 
+    	{
         	LOGGER.info("Factory model retrieved successfully for factory ID: " + factoryId);
             return factory;
-        } else {
+        } else 
+        {
         	LOGGER.info("No simulation found for factory ID: " + factoryId);
             return null;
         }
@@ -68,10 +72,19 @@ public class MicroServiceController {
     }
     
     public Factory findFactory(String factoryId) {
-    	for(Factory fac : factoryModelList) {
-    		if (fac.getId() == factoryId)
-    			return fac;
-    	}
-    	return null;
+    	for(Factory fac : factoryModelList) 
+    	{
+ 			if(new File(fac.getId()).getName() == factoryId)
+ 				return fac;
+    	}	
+    	try 
+		{
+			return (Factory) persistenceManager.read(factoryId);
+		} 
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
     }
 }

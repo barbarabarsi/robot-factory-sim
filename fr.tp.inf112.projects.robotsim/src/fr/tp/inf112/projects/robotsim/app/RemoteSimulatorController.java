@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
@@ -34,11 +35,9 @@ public class RemoteSimulatorController extends SimulatorController{
 	private URI uri;
 	private HttpResponse<String> response;
 	private ObjectMapper objectMapper;
-	private Factory factory;
 	
 	public RemoteSimulatorController(Factory factory, RemoteFactoryPersistenceManager persistenceManager) throws URISyntaxException, IOException, InterruptedException {
 		super(factory, persistenceManager);
-		this.factory = factory;
 		httpClient = HttpClient.newHttpClient(); 
 		
 		final PolymorphicTypeValidator typeValidator =  BasicPolymorphicTypeValidator.builder() 
@@ -50,8 +49,6 @@ public class RemoteSimulatorController extends SimulatorController{
 				.build(); 
 		objectMapper = new ObjectMapper(); 
 		objectMapper.activateDefaultTyping(typeValidator,  ObjectMapper.DefaultTyping.NON_FINAL); 
-		
-		runUpdate();
 
 	}
 
@@ -60,19 +57,22 @@ public class RemoteSimulatorController extends SimulatorController{
 	 */
 	@Override
     public void startAnimation() {
+		
 		try {			
-			if(factory.getId() == null) {
-				factory.setId(UUID.randomUUID().toString());
-			}
-			uri = new URI("http", null, "localhost", 8080, "/start/" + factory.getId() , null, null);
+			final URI uri = new URI("http", null, "localhost", 8080, "/start/" + factoryModel.getId(), null, null);
 			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
-
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			objectMapper.readValue(response.body(), boolean.class);
-				
-		} catch ( IOException | InterruptedException | URISyntaxException e) {
+			
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			ObjectMapper objectMapper = new ObjectMapper();
+			Boolean value = objectMapper.readValue(response.body(), boolean.class);
+			System.out.println(value);
+			
+		} catch (URISyntaxException | InterruptedException | IOException e) {
+			// TODO Auto-generated catch block
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
+		run();
+		
     }
 	
 	/**
@@ -81,20 +81,33 @@ public class RemoteSimulatorController extends SimulatorController{
     @Override
     public void stopAnimation() {
     	try {			
-			uri = new URI("http", null, "localhost", 8080, "/stop/" + factory.getId() , null, null);
+			final URI uri = new URI("http", null, "localhost", 8080, "/stop/" + factoryModel.getId(), null, null);
 			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
 			
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			objectMapper.readValue(response.body(), boolean.class);
 			
-    	} catch ( IOException | InterruptedException | URISyntaxException e) {
+		} catch (URISyntaxException | InterruptedException | IOException e) {
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
+    	run();
     }
 	
 	private void updateViewer() throws InterruptedException, URISyntaxException, IOException {
-		while (((Factory) getCanvas()).isSimulationStarted()) {
-			final Factory remoteFactoryModel = getFactory();
+		final URI uri = new URI("http", null, "localhost", 8080, "/get/" + factoryModel.getId(), null, null);
+		HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
+		
+		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		System.out.println( response);
+		final Factory remoteFactoryModel = objectMapper.readValue(response.body(), Factory.class);
+	
+		while (((Factory) getCanvas()).isSimulationStarted()) {	
+			
+			for(Observer ob : factoryModel.getObservers()) {
+				remoteFactoryModel.addObserver(ob);
+			}	
+			this.factoryModel = remoteFactoryModel;
+
 			setCanvas(remoteFactoryModel); 
 			try {
 				Thread.sleep(100);
@@ -104,26 +117,7 @@ public class RemoteSimulatorController extends SimulatorController{
 		} 
 	}
 	
-	public Factory getFactory() throws URISyntaxException {
-
-		try {
-			uri = new URI("http", null, "localhost", 8080, "/get/" + factory.getId() , null, null);
-			
-			request = HttpRequest.newBuilder().uri(uri).GET().build();
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			
-			LOGGER.info(response.toString());
-			
-			return objectMapper.readValue(response.body(), Factory.class);
-		} 
-		catch (URISyntaxException | IOException | InterruptedException e) {
-			LOGGER.warning(e.getMessage());
-			
-			return null;
-		}
-	}
-	
-	private void runUpdate() {
+	private void run() {
 		new Thread(() -> {
 			try {
 				this.updateViewer();
@@ -134,24 +128,19 @@ public class RemoteSimulatorController extends SimulatorController{
 	}
 	
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override 
+	* {@inheritDoc}
+	*/
+	@Override
 	public void setCanvas(final Canvas canvasModel) {
-		
-        if (getCanvas() == null) {
-            LOGGER.warning("Current canvas is null. Initializing with a new Factory instance.");
-            super.setCanvas(new Factory(200, 200, "Default Factory"));
-            
-        }
-        
-		final List<Observer> observers = ((Factory) getCanvas()).getObservers();
+		final List<Observer> observers = factoryModel.getObservers();
 		super.setCanvas(canvasModel);
-
+		
 		for (final Observer observer : observers) {
-			((Factory) getCanvas()).addObserver(observer); 
-		} 
-		((Factory) getCanvas()).notifyObservers(); 
-	} 
+			((Factory) canvasModel).addObserver(observer);
+		}
+		((Component) canvasModel).notifyObservers();
+		
+		factoryModel = (Factory) canvasModel;
+	}
 	
 }

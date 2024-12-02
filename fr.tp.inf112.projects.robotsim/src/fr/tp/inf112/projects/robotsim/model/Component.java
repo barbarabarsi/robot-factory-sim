@@ -109,7 +109,7 @@ public abstract class Component implements Figure, Serializable, Runnable {
 		return false;
 	}
 
-	protected void notifyObservers() {
+	public void notifyObservers() {
 		getFactory().notifyObservers();
 	}
 
