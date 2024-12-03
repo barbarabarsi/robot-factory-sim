@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="libs/jgrapht/lib/jgrapht-core-1.5.2.jar" sourcepath="libs/jgrapht/source/jgrapht-core"/>
+	<classpathentry exported="true" kind="lib" path="libs/jgrapht/lib/jheaps-0.14.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/graph.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/canvas-viewer.jar" sourcepath="libs/canvas-viewer.jar"/>
+	<classpathentry kind="lib" path="C:/Users/bbars/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.18.1/jackson-annotations-2.18.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/bbars/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.18.1/jackson-core-2.18.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/bbars/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.18.1/jackson-databind-2.18.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/bbars/.m2/repository/org/apache/kafka/kafka-clients/3.8.1/kafka-clients-3.8.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/bbars/.m2/repository/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
