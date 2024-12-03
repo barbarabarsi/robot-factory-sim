@@ -16,21 +16,19 @@ public class Room extends Component {
 	
 	private static final int WALL_THICKNESS = 5;
 	
-	private final PositionedShape leftWall;
+	private PositionedShape leftWall;
 	
-	private final PositionedShape rightWall;
+	private PositionedShape rightWall;
 	
-	private final PositionedShape topWall;
+	private PositionedShape topWall;
 	
-	private final PositionedShape bottomWall;
+	private PositionedShape bottomWall;
 	
-	private final List<Area> areas;
+	private List<Area> areas;
 
-	private final List<Door> doors;
+	private List<Door> doors;
 	
-	public Room() {
-		this(null, null, null);
-	}
+	public Room() {	}
 
 	public Room(final Factory factory,
 				final RectangularShape shape,

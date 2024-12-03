@@ -6,11 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import fr.tp.inf112.projects.robotsim.managers.RemoteFactoryPersistenceManager;
+import fr.tp.inf112.projects.robotsim.managers.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.Factory;
-import fr.tp.inf112.projects.robotsim.model.RemoteFactoryPersistenceManager;
-import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
+import fr.tp.inf112.projects.robotsim.notifiers.FactoryModelChangedNotifier;
+import fr.tp.inf112.projects.robotsim.notifiers.LocalFactoryModelChangedNotifier;
 
 @RestController
 public class MicroServiceController {
@@ -20,31 +24,34 @@ public class MicroServiceController {
     private List<Factory> factoryModelList = new ArrayList<Factory>();
     private RemoteFactoryPersistenceManager persistenceManager = new RemoteFactoryPersistenceManager(new RemoteFileCanvasChooser("factory", "Puck Factory"));;
    
+    @Autowired
+	private KafkaTemplate<String, Factory> simulationEventTemplate;
 
     @GetMapping("/start/{factoryId}")
     public boolean startSimulation(@PathVariable String factoryId) {
         LOGGER.info("Request received to start simulation for factory ID: " + factoryId);
         
-		try {
+		try 
+		{
 			Factory factory = (Factory) persistenceManager.read(factoryId);
 			factoryModelList.add(factory);
-
-			try
-			{	
-				new Thread(() -> factory.startSimulation()).start();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+			LOGGER.info("JUJUBA " + factory);
+			final FactoryModelChangedNotifier notifier = new KafkaFactoryModelChangeNotifier(factory, simulationEventTemplate);
+	        factory.setNotifier(notifier);
+	
+			new Thread(() -> factory.startSimulation()).start();
 			LOGGER.info("Simulation started successfully for factory ID:" + factoryId);
             return true;
-		} catch (IOException e) {
-			LOGGER.fine("Failed to start simulation for factory ID: " + factoryId);
+		} 
+		catch (Exception e) 
+		{
+			LOGGER.severe(e.getMessage());
+			LOGGER.severe("Failed to start simulation for factory ID: " + factoryId);
             return false;
 		}
     }
 
+    @GetMapping("/get/{factoryId}")
     public Factory getFactory(@PathVariable String factoryId) {
     	
     	LOGGER.info("Request received to retrieve simulation for factory ID: " + factoryId);
@@ -81,9 +88,9 @@ public class MicroServiceController {
 		{
 			return (Factory) persistenceManager.read(factoryId);
 		} 
-		catch (IOException e)
+		catch (Exception e)
 		{
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 		}
 		return null;
     }

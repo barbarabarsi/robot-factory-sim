@@ -1,4 +1,4 @@
-package fr.tp.inf112.projects.robotsim.model;
+package fr.tp.inf112.projects.robotsim.managers;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -25,7 +25,7 @@ public class RemoteFactoryPersistenceManager extends AbstractCanvasPersistenceMa
 	    	BufferedOutputStream buffOutputStream = new BufferedOutputStream(socket.getOutputStream());
 	        ObjectOutputStream objectOutputStream = new ObjectOutputStream(buffOutputStream);
 	        objectOutputStream.writeObject(canvasId); 
-	    	objectOutputStream.flush();
+	    	objectOutputStream.flush(); 
 	    	
 	    	BufferedInputStream buffInputStream = new BufferedInputStream(socket.getInputStream());
 	        ObjectInputStream objectinputStream = new ObjectInputStream(buffInputStream);

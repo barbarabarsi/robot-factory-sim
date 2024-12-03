@@ -2,7 +2,7 @@ package fr.tp.inf112.projects.robotsim.model;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.tp.inf112.projects.canvas.model.Color;
 import fr.tp.inf112.projects.canvas.model.Style;
@@ -22,20 +22,18 @@ public class ComponentStyle implements Style, Stroke, Serializable {
     public static final ComponentStyle DEFAULT_GREEN = new ComponentStyle(RGBColor.GREEN, null, (short) -1, null);
 
     public static final ComponentStyle DEFAULT_RED = new ComponentStyle(RGBColor.GREEN, null, (short) -1, null);
-
+    
     public final static float[] DEFAULT_DASH_PATTERN = {4.0f};
 
-    private Color backgroundColor;
+    public Color backgroundColor;
     
-    private Color lineColor;
+    public Color lineColor;
 
-    private float lineThickness;
+    public float lineThickness;
     
-    final float[] dashPattern;
+    public float[] dashPattern;
 	
-	public ComponentStyle() {
-		this(null);
-	}
+	public ComponentStyle() {}
 
 	public ComponentStyle(final float lineThickness) {
 		this(null, null, lineThickness, null);
@@ -60,13 +58,13 @@ public class ComponentStyle implements Style, Stroke, Serializable {
 		return backgroundColor;
 	}
 
-	@JsonInclude
 	public Color getColor() {
 		return lineColor;
 	}
 
 
 	@Override
+	@JsonIgnore
 	public Stroke getStroke() {
 		return this;
 	}

@@ -4,23 +4,22 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
 import fr.tp.inf112.projects.canvas.model.impl.BasicVertex;
 import fr.tp.inf112.projects.canvas.view.CanvasViewer;
-import fr.tp.inf112.projects.canvas.view.FileCanvasChooser;
+import fr.tp.inf112.projects.robotsim.managers.RemoteFactoryPersistenceManager;
+import fr.tp.inf112.projects.robotsim.managers.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.Area;
 import fr.tp.inf112.projects.robotsim.model.Battery;
 import fr.tp.inf112.projects.robotsim.model.ChargingStation;
 import fr.tp.inf112.projects.robotsim.model.Conveyor;
 import fr.tp.inf112.projects.robotsim.model.Door;
 import fr.tp.inf112.projects.robotsim.model.Factory;
-import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Machine;
-import fr.tp.inf112.projects.robotsim.model.RemoteFactoryPersistenceManager;
-import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.Robot;
 import fr.tp.inf112.projects.robotsim.model.Room;
 import fr.tp.inf112.projects.robotsim.model.path.CustomDijkstraFactoryPathFinder;
@@ -31,11 +30,16 @@ import fr.tp.inf112.projects.robotsim.model.shapes.CircularShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
 public class SimulatorApplication {
+	
+	private static final AtomicInteger ID = new AtomicInteger(0);
+	private static final Logger LOGGER = Logger.getLogger(SimulatorApplication.class.getName());
 
 	public static void main(String[] args) {
-		System.out.println("Starting the robot simulator...");
+				
 		
-		System.out.println("With parameters " + Arrays.toString(args) + ".");
+		LOGGER.info("Starting the robot simulator...");
+		
+		LOGGER.config("With parameters " + Arrays.toString(args) + ".");
 	
 		SwingUtilities.invokeLater(new Runnable() {
 			  
@@ -57,6 +61,7 @@ public class SimulatorApplication {
 	}
 	
 	public static Factory defaultFactory() {
+		
 		final Factory factory = new Factory(200, 200, "Simple Test Puck Factory");
 		final Room room1 = new Room(factory, new RectangularShape(20, 20, 75, 75), "Production Room 1");
 		new Door(room1, Room.WALL.BOTTOM, 10, 20, true, "Entrance");
@@ -84,7 +89,7 @@ public class SimulatorApplication {
 		conveyorShape.addVertex(new BasicVertex(xCoordinate, yCoordinate + height - baselineSize));
 
 		final Room chargingRoom = new Room(factory, new RectangularShape(125, 125, 50, 50), "Charging Room");
-		new Door(chargingRoom, Room.WALL.RIGHT, 10, 20, false, "Entrance");
+		new Door(chargingRoom, Room.WALL.RIGHT, 10, 20, true, "Entrance");
 		final ChargingStation chargingStation = new ChargingStation(factory, new RectangularShape(150, 145, 15, 15), "Charging Station");
 
 		final FactoryPathFinder jgraphPahtFinder = new JGraphTDijkstraFactoryPathFinder(factory, 5);
@@ -101,8 +106,12 @@ public class SimulatorApplication {
 		robot2.addTargetComponent(new Conveyor(factory, conveyorShape, "Conveyor 1"));
 		robot2.addTargetComponent(chargingStation);
 		
-		factory.setId(UUID.randomUUID().toString());
+		factory.setId(generateUniqueId() );
 		
 		return factory;
+	}
+	
+	public static String generateUniqueId() {
+	    return String.valueOf(ID.incrementAndGet());
 	}
 }

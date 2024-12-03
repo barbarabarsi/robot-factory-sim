@@ -3,26 +3,29 @@ package fr.tp.inf112.projects.robotsim.model.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
+
+import fr.tp.inf112.projects.robotsim.model.path.AbstractFactoryPathFinder;
 
 public class Server {
 
+	private static final Logger LOGGER = Logger.getLogger(AbstractFactoryPathFinder.class.getName());
 	
 	public static void main(String args[]){
 			
-			try( ServerSocket serverSocket = new ServerSocket(80)) {
-				System.out.println("Server created: " + serverSocket.getLocalSocketAddress() );	
+			try{
+				ServerSocket serverSocket = new ServerSocket(80);
+				LOGGER.info("Server created: " + serverSocket.getLocalSocketAddress() );	
 				do {				
 					Socket clientSocket = serverSocket.accept();
-					System.out.println("Client conected: " + clientSocket.getInetAddress() + ":" + clientSocket.getLocalPort() );
 					
 					Runnable reqProcessor = new RequestProcessor(clientSocket);
 					new Thread(reqProcessor).start();
-					System.out.println("Started a thread!");
 				} while(true);
 			}
-			catch (IOException ex) { ex.printStackTrace(); }
-			
-		
+			catch (IOException e) { 
+				LOGGER.severe(e.getMessage());
+			}
 					
 	}
 	

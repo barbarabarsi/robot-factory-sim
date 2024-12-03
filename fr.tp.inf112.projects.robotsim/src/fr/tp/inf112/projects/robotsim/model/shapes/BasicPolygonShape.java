@@ -3,6 +3,8 @@ package fr.tp.inf112.projects.robotsim.model.shapes;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import fr.tp.inf112.projects.canvas.model.PolygonShape;
 import fr.tp.inf112.projects.canvas.model.Vertex;
 
@@ -10,10 +12,10 @@ public class BasicPolygonShape extends PositionedShape implements PolygonShape {
 	
 	private static final long serialVersionUID = -1764316101910546849L;
 
-	private final Set<Vertex> vertices;
+	private Set<Vertex> vertices;
 	
 	public BasicPolygonShape() {
-		super(0, 0);
+		super(0,0);
 		
 		this.vertices = new LinkedHashSet<>();
 	}
@@ -45,6 +47,7 @@ public class BasicPolygonShape extends PositionedShape implements PolygonShape {
 	}
 	
 	@Override
+	@JsonIgnore
 	public int getWidth() {
 		int minCoordinate = Integer.MAX_VALUE;
 		int maxCoordinate = 0;
@@ -60,6 +63,7 @@ public class BasicPolygonShape extends PositionedShape implements PolygonShape {
 	}
 
 	@Override
+	@JsonIgnore
 	public int getHeight() {
 		int minCoordinate = Integer.MAX_VALUE;
 		int maxCoordinate = 0;

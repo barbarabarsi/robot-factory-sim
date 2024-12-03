@@ -3,12 +3,11 @@ package fr.tp.inf112.projects.robotsim.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import fr.tp.inf112.projects.canvas.controller.Observable;
 import fr.tp.inf112.projects.canvas.controller.Observer;
@@ -18,31 +17,27 @@ import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.robotsim.model.motion.Motion;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
+import fr.tp.inf112.projects.robotsim.notifiers.FactoryModelChangedNotifier;
+import fr.tp.inf112.projects.robotsim.notifiers.LocalFactoryModelChangedNotifier;
 
-@JsonIdentityInfo(
-		generator = ObjectIdGenerators.PropertyGenerator.class,
-		property = "id")
 public class Factory extends Component implements Canvas, Observable {
+
+	private static final Logger LOGGER = Logger.getLogger(Factory.class.getName());
 
 	private static final long serialVersionUID = 5156526483612458192L;
 	
 	private static final ComponentStyle DEFAULT = new ComponentStyle(5.0f);
 
-	//@JsonManagedReference
-    private final List<Component> components;
+	@JsonManagedReference
+    private List<Component> components;
 
-    @JsonIgnore
-	private transient List<Observer> observers;
-
-	@JsonIgnore 
-	private transient boolean simulationStarted;
+	@JsonIgnore
+	public transient boolean simulationStarted;
 	
-	public Factory() {
-		super();
-		components = new ArrayList<>();
-		observers = null;
-		simulationStarted = false;
-	}
+	@JsonIgnore
+	private transient FactoryModelChangedNotifier  notifier;
+	
+	public Factory() {}
 
 	public Factory(final int width,
 				   final int height,
@@ -50,33 +45,35 @@ public class Factory extends Component implements Canvas, Observable {
 		super(null, new RectangularShape(0, 0, width, height), name);
 		
 		components = new ArrayList<>();
-		observers = null;
 		simulationStarted = false;
+		this.notifier = new LocalFactoryModelChangedNotifier();
 	}
 	
-	@JsonInclude
-	public List<Observer> getObservers() {
-		if (observers == null) {
-			observers = new ArrayList<>();
-		}
-		
-		return observers;
-	}
 
 	@Override
 	public boolean addObserver(Observer observer) {
-		return getObservers().add(observer);
+		if (notifier != null) {
+			return notifier.addObserver(observer);
+		}
+		return false;
+		// return getObservers().add(observer);
 	}
 
 	@Override
 	public boolean removeObserver(Observer observer) {
-		return getObservers().remove(observer);
+		if (notifier != null) {
+			return notifier.removeObserver(observer);
+		}
+		return false;
 	}
 	
 	public void notifyObservers() {
-		for (final Observer observer : getObservers()) {
-			observer.modelChanged();
+		if (notifier != null) {
+			notifier.notifyObservers();
 		}
+//		for (final Observer observer : getObservers()) {
+//			observer.modelChanged();
+//		}
 	}
 	
 	public boolean addComponent(final Component component) {
@@ -99,7 +96,7 @@ public class Factory extends Component implements Canvas, Observable {
 		return false;
 	}
 
-	protected List<Component> getComponents() {
+	public List<Component> getComponents() {
 		return components;
 	}
 
@@ -118,8 +115,18 @@ public class Factory extends Component implements Canvas, Observable {
 	public boolean isSimulationStarted() {
 		return simulationStarted;
 	}
+	
+	@JsonIgnore
+	public List<Observer> getObservers() {
+		return getNotifier().getObservers();
+	}
+	
+	public void setSimulationStatus(boolean status) {
+		simulationStarted = status;
+	}
 
 	public void startSimulation() {
+
 		if (!isSimulationStarted()) {
 			this.simulationStarted = true;
 			notifyObservers();
@@ -135,6 +142,15 @@ public class Factory extends Component implements Canvas, Observable {
 			notifyObservers();
 		}
 	}
+	
+	public FactoryModelChangedNotifier getNotifier() {
+		return notifier;
+	}
+	
+	public void setNotifier(FactoryModelChangedNotifier notifier) {
+		this.notifier = notifier;
+	}
+
 
 	@Override
 	public boolean behave() {
@@ -154,6 +170,7 @@ public class Factory extends Component implements Canvas, Observable {
 		return DEFAULT;
 	}
 	
+	@JsonIgnore
 	public boolean hasObstacleAt(final PositionedShape shape) {
 		for (final Component component : getComponents()) {
 			if (component.overlays(shape) && !component.canBeOverlayed(shape)) {
@@ -164,6 +181,7 @@ public class Factory extends Component implements Canvas, Observable {
 		return false;
 	}
 	
+	@JsonIgnore
 	public boolean hasMobileComponentAt(final PositionedShape shape,
 										final Component movingComponent) {
 		for (final Component component : getComponents()) {
@@ -196,4 +214,6 @@ public class Factory extends Component implements Canvas, Observable {
 	
 		return motion.moveToTarget();
 	}
+
+
 }

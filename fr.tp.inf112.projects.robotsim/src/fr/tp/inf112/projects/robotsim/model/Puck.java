@@ -6,9 +6,7 @@ public class Puck extends Component {
 
 	private static final long serialVersionUID = -2194778403928041427L;
 	
-	public Puck() {
-		this(null, null, null);
-	}
+	public Puck() {	}
 
 	public Puck(final Factory factory,
 				final CircularShape shape,

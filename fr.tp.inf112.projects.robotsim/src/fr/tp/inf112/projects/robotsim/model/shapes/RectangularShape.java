@@ -6,15 +6,11 @@ public class RectangularShape extends PositionedShape implements RectangleShape 
 	
 	private static final long serialVersionUID = -6113167952556242089L;
 
-	private final int width;
+	private int width;
 
-	private final int height;
+	private int height;
 	
-	public RectangularShape() {
-		super();
-		this.width = 0;
-		this.height = 0;
-	}
+	public RectangularShape() {	}
 
 	public RectangularShape(final int xCoordinate,
 							final int yCoordinate,

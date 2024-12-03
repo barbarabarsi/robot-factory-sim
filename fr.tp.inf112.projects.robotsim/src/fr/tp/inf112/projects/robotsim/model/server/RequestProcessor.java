@@ -2,26 +2,23 @@ package fr.tp.inf112.projects.robotsim.model.server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.logging.Logger;
 
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.robotsim.app.SimulatorApplication;
+import fr.tp.inf112.projects.robotsim.managers.FactoryPersistenceManager;
+import fr.tp.inf112.projects.robotsim.managers.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.Factory;
-import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
-import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
-// import java.util.logging.Logger;
 
 public class RequestProcessor implements Runnable {
     private Socket client;
+    private static final Logger LOGGER = Logger.getLogger(RequestProcessor.class.getName());
     
     public RequestProcessor(Socket client) {
     	this.client = client;
@@ -69,16 +66,16 @@ public class RequestProcessor implements Runnable {
             }
 			 
 	    } catch (SocketException e) {
-	        System.out.println("Connection closes by the client.");
+	        LOGGER.info("Connection closed by the client.");
 	    } catch (Exception e) {
-	        e.printStackTrace();
+	    	LOGGER.severe(e.getMessage());
 	    } finally {
 	        try {
 	            if (!client.isClosed()) {
 	                client.close();
 	            }
 	        } catch (IOException e) {
-	            e.printStackTrace();
+	        	LOGGER.severe(e.getMessage());
 	        }
 	    }
 	}

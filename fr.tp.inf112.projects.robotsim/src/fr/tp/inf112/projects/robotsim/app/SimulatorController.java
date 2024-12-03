@@ -58,7 +58,7 @@ public class SimulatorController implements CanvasViewerController {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Canvas getCanvas() {
+	public Factory getCanvas() {
 		return factoryModel;
 	}
 

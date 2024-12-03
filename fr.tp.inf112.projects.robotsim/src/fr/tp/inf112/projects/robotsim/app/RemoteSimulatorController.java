@@ -6,30 +6,26 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
-import fr.tp.inf112.projects.canvas.controller.Observer;
+
 import fr.tp.inf112.projects.canvas.model.Canvas;
-import fr.tp.inf112.projects.canvas.model.CanvasPersistenceManager;
-import fr.tp.inf112.projects.canvas.model.impl.BasicVertex;
-import fr.tp.inf112.projects.robotsim.model.Component;
+import fr.tp.inf112.projects.robotsim.managers.RemoteFactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Factory;
-import fr.tp.inf112.projects.robotsim.model.RemoteFactoryPersistenceManager;
-import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
+import fr.tp.inf112.projects.robotsim.notifiers.FactorySimulationEventConsumer;
+import fr.tp.inf112.projects.robotsim.notifiers.LocalFactoryModelChangedNotifier;
+import fr.tp.inf112.projects.robotsim.utils.SimulationServiceUtils;
 
 public class RemoteSimulatorController extends SimulatorController{
 	
 	private static final Logger LOGGER = Logger.getLogger(RemoteSimulatorController.class.getName());
 	
+	private AtomicBoolean isRunning = new AtomicBoolean(false);
 	private HttpClient httpClient;
 	private HttpRequest request;
 	private URI uri;
@@ -39,17 +35,7 @@ public class RemoteSimulatorController extends SimulatorController{
 	public RemoteSimulatorController(Factory factory, RemoteFactoryPersistenceManager persistenceManager) throws URISyntaxException, IOException, InterruptedException {
 		super(factory, persistenceManager);
 		httpClient = HttpClient.newHttpClient(); 
-		
-		final PolymorphicTypeValidator typeValidator =  BasicPolymorphicTypeValidator.builder() 
-				.allowIfSubType(PositionedShape.class.getPackageName()) 
-				.allowIfSubType(Component.class.getPackageName()) 
-				.allowIfSubType(BasicVertex.class.getPackageName()) 
-				.allowIfSubType(ArrayList.class.getName()) 
-				.allowIfSubType(LinkedHashSet.class.getName()) 
-				.build(); 
-		objectMapper = new ObjectMapper(); 
-		objectMapper.activateDefaultTyping(typeValidator,  ObjectMapper.DefaultTyping.NON_FINAL); 
-
+		objectMapper = SimulationServiceUtils.mapper();
 	}
 
 	/**
@@ -61,18 +47,32 @@ public class RemoteSimulatorController extends SimulatorController{
 		try {			
 			final URI uri = new URI("http", null, "localhost", 8080, "/start/" + factoryModel.getId(), null, null);
 			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
+			LOGGER.info("" + request);
 			
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			ObjectMapper objectMapper = new ObjectMapper();
-			Boolean value = objectMapper.readValue(response.body(), boolean.class);
-			System.out.println(value);
+			LOGGER.info("" + response);
 			
-		} catch (URISyntaxException | InterruptedException | IOException e) {
-			// TODO Auto-generated catch block
+			ObjectMapper objectMapper = new ObjectMapper();
+			boolean value = objectMapper.readValue(response.body(), boolean.class);
+			isRunning.set(true);
+			
+			if (value) {
+				FactorySimulationEventConsumer consumer = new FactorySimulationEventConsumer(this);
+				
+				new Thread( () -> {
+					try {
+						consumer.consumeMessages();
+					} catch (JsonProcessingException e) {
+						LOGGER.severe(e.getMessage());
+					}
+				}).start();
+			}
+
+
+		} catch (Exception e) {
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
-		run();
-		
+
     }
 	
 	/**
@@ -87,60 +87,61 @@ public class RemoteSimulatorController extends SimulatorController{
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			objectMapper.readValue(response.body(), boolean.class);
 			
+			isRunning.set(false);
+			
 		} catch (URISyntaxException | InterruptedException | IOException e) {
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
-    	run();
+    	this.factoryModel.setSimulationStatus(false);
     }
 	
-	private void updateViewer() throws InterruptedException, URISyntaxException, IOException {
-		final URI uri = new URI("http", null, "localhost", 8080, "/get/" + factoryModel.getId(), null, null);
-		HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
-		
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		System.out.println( response);
-		final Factory remoteFactoryModel = objectMapper.readValue(response.body(), Factory.class);
+    @Override 
+    public boolean isAnimationRunning() {
+    	return isRunning.get();
+    }
+   
 	
-		while (((Factory) getCanvas()).isSimulationStarted()) {	
+	private Factory getFactory() {
+		Factory factory = null;
+		try {			
+			final URI uri = new URI("http", null, "localhost", 8080, "/get/" + factoryModel.getId(), null, null);
+			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
 			
-			for(Observer ob : factoryModel.getObservers()) {
-				remoteFactoryModel.addObserver(ob);
-			}	
-			this.factoryModel = remoteFactoryModel;
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			if(response.statusCode() == 404) {
+				return null;
+			}
+			factory = objectMapper.readValue(response.body(), Factory.class);
 
-			setCanvas(remoteFactoryModel); 
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		} 
+		} catch (InterruptedException | IOException | URISyntaxException e) {
+			LOGGER.severe(e.getMessage() + e.getStackTrace());
+		}
+		return factory;
 	}
 	
-	private void run() {
-		new Thread(() -> {
-			try {
-				this.updateViewer();
-			} catch (InterruptedException | URISyntaxException | IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
-	}
-	
-	/**
-	* {@inheritDoc}
-	*/
 	@Override
 	public void setCanvas(final Canvas canvasModel) {
-		final List<Observer> observers = factoryModel.getObservers();
-		super.setCanvas(canvasModel);
 		
-		for (final Observer observer : observers) {
-			((Factory) canvasModel).addObserver(observer);
+		if (factoryModel == null) {
+			this.factoryModel = (Factory) canvasModel;
 		}
-		((Component) canvasModel).notifyObservers();
+		else {
+			if (factoryModel.getId() != null && canvasModel.getId() != null && factoryModel.getId() != canvasModel.getId()) {
+				
+				isRunning.set(false);
+				stopAnimation();
+				
+				FactorySimulationEventConsumer consumer = new FactorySimulationEventConsumer(this);
+				factoryModel.setId(canvasModel.getId());
+				
+				consumer.redefineTopic((Factory) canvasModel);
+			}
+			LocalFactoryModelChangedNotifier notifier = (LocalFactoryModelChangedNotifier) factoryModel.getNotifier();
+			factoryModel = (Factory) canvasModel;		
+			factoryModel.setNotifier(notifier);
+			factoryModel.notifyObservers();
+		}
 		
-		factoryModel = (Factory) canvasModel;
 	}
 	
 }

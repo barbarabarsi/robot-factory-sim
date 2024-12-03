@@ -2,8 +2,6 @@ package fr.tp.inf112.projects.robotsim.model;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 public class Position implements Serializable {
 
 	private static final long serialVersionUID = 7274819087013715987L;
@@ -12,27 +10,20 @@ public class Position implements Serializable {
 
 	private int yCoordinate;
 	
-	public Position() {
-		super();
-
-		this.xCoordinate = -1;
-		this.yCoordinate = -1;
-	}
+	public Position() {}
 
 	public Position(final int xCoordinate, 
 					final int yCoordinate) {
 		super();
 
-		this.xCoordinate = xCoordinate;
+		this.xCoordinate = xCoordinate; 
 		this.yCoordinate = yCoordinate;
 	}
 
-	@JsonInclude
 	public int getxCoordinate() {
 		return xCoordinate;
 	}
 
-	@JsonInclude
 	public int getyCoordinate() {
 		return yCoordinate;
 	}

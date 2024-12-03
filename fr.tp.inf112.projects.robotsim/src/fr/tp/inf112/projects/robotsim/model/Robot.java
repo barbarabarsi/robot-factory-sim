@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.canvas.model.impl.RGBColor;
@@ -23,13 +22,13 @@ public class Robot extends Component {
 
 	private static final Style BLOCKED_STYLE = new ComponentStyle(RGBColor.RED, RGBColor.BLACK, 3.0f, new float[]{4.0f});
 
-	private final Battery battery;
+	public Battery battery;
 	
 	private int speed;
 	
 	private List<Component> targetComponents;
 	
-	@JsonIgnore 
+	@JsonIgnore
 	private transient Iterator<Component> targetComponentsIterator;
 	
 	private Component currTargetComponent;
@@ -37,16 +36,13 @@ public class Robot extends Component {
 	@JsonIgnore 
 	private transient Iterator<Position> currentPathPositionsIter;
 	
-	@JsonIgnore 
-	private transient boolean blocked;
+	public transient boolean blocked;
 	
 	private Position nextPosition;
 	
 	private FactoryPathFinder pathFinder;
 	
-	public Robot() {
-		this(null, null, null, null, null);
-	}
+	public Robot() {}
 
 	public Robot(final Factory factory,
 				 final FactoryPathFinder pathFinder,
@@ -72,8 +68,7 @@ public class Robot extends Component {
 		return super.toString() + " battery=" + battery + "]";
 	}
 
-	@JsonInclude
-	protected int getSpeed() {
+	public int getSpeed() {
 		return speed;
 	}
 
@@ -98,7 +93,7 @@ public class Robot extends Component {
 	}
 	
 	@Override
-	@JsonInclude
+	@JsonIgnore
 	public boolean isMobile() {
 		return true;
 	}
@@ -135,6 +130,7 @@ public class Robot extends Component {
 	}
 	
 	@Override 
+	@JsonIgnore
 	public boolean isLivelyLocked() {
 		final Position nextPosition = getNextPosition();
 		if (nextPosition == null) {
@@ -211,18 +207,19 @@ public class Robot extends Component {
 		return new Motion(getPosition(), nextPosition);
 	}
 	
+	@JsonIgnore
 	private boolean hasReachedCurrentTarget() {
 		return getPositionedShape().overlays(currTargetComponent.getPositionedShape());
 	}
 	
 	@Override
-	@JsonInclude
+	@JsonIgnore
 	public boolean canBeOverlayed(final PositionedShape shape) {
 		return true;
 	}
 	
 	@Override
-	@JsonInclude
+	@JsonIgnore
 	public Style getStyle() {
 		return blocked ? BLOCKED_STYLE : STYLE;
 	}
